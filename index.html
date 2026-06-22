@@ -91,6 +91,9 @@
 
   .tel{display:flex;align-items:center;justify-content:space-between;text-decoration:none;color:var(--ink)}
   .tel .num{font-weight:700;color:var(--jade-deep);font-size:15px}
+  .contact{display:block;text-decoration:none;color:var(--ink)}
+  .contact-label{display:block;font-size:12px;color:var(--muted);line-height:1.4}
+  .contact-val{display:block;font-size:15px;font-weight:700;color:var(--jade-deep);margin-top:5px;word-break:break-all}
 
   #chat{position:relative}
   .chat-note{font-size:11px;color:var(--muted);background:var(--porcelain);
@@ -174,6 +177,13 @@
       <div class="sectitle">当日の緊急連絡先</div>
       <a class="card tel" id="telLink"><span>お急ぎの場合はお電話を</span><span class="num" id="telNum"></span></a>
     </div>
+    <div id="contactWrap" class="hidden">
+      <div class="sectitle">お問い合わせ</div>
+      <a class="card contact" id="mailLink">
+        <span class="contact-label">ご不明な点は事務局までメールでも承ります</span>
+        <span class="contact-val" id="mailAddr"></span>
+      </a>
+    </div>
   </div>
 
   <div class="panel" id="chat">
@@ -220,6 +230,7 @@ const VENUE = {
 };
 /* 当日の緊急連絡先（決まったら入れる。空なら非表示） */
 const EMERGENCY_TEL = "";   // 例: "+81-90-xxxx-xxxx"
+const CONTACT_EMAIL = "pittocart@gmail.com";   // 連絡先メール（空なら非表示）
 /* ============================================================ */
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
@@ -259,6 +270,8 @@ function renderGuide(){
 
   if(EMERGENCY_TEL){ $("#telWrap").classList.remove("hidden");
     $("#telNum").textContent=EMERGENCY_TEL; $("#telLink").href="tel:"+EMERGENCY_TEL.replace(/[^+\d]/g,""); }
+  if(CONTACT_EMAIL){ $("#contactWrap").classList.remove("hidden");
+    $("#mailAddr").textContent=CONTACT_EMAIL; $("#mailLink").href="mailto:"+CONTACT_EMAIL; }
 }
 
 function renderAnnouncements(list){
