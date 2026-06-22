@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>VANDS & LIAS Medical Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --porcelain:#F6F5F2; --surface:#FFFFFF; --ink:#1C1F1D; --muted:#7A8580;
+    --jade:#3A6B5E; --jade-deep:#2C5347; --jade-soft:#E8EFEB; --line:#E6E4DE;
+    --gold:#A8884E; --danger:#B4524A; --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--porcelain);color:var(--ink);
+    font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.6}
+  .app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;
+    background:var(--surface);box-shadow:0 0 60px rgba(28,31,29,.06)}
+
+  .top{display:flex;align-items:center;gap:12px;padding:14px 18px;
+    padding-top:max(14px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
+  .mark{width:40px;height:40px;border-radius:11px;flex:none;
+    background:linear-gradient(140deg,var(--jade),var(--jade-deep));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+  .top .name{font-weight:700;font-size:14px;letter-spacing:.02em}
+  .top .sub{font-size:12px;color:var(--muted)}
+
+  .banner{display:none;align-items:flex-start;gap:10px;padding:12px 16px;
+    background:var(--jade-deep);color:#fff;font-size:13.5px}
+  .banner.show{display:flex}
+  .banner .ico{flex:none;font-size:15px;line-height:1.4}
+  .banner .x{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.7);
+    font-size:18px;cursor:pointer;line-height:1;padding:0 2px}
+
+  .tabs{display:flex;border-bottom:1px solid var(--line)}
+  .tab{flex:1;padding:13px;border:none;background:none;font:inherit;font-size:14px;font-weight:500;
+    color:var(--muted);cursor:pointer;position:relative}
+  .tab.active{color:var(--jade-deep);font-weight:700}
+  .tab.active::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;
+    background:var(--jade);border-radius:2px}
+  .tab .pip{display:none;width:7px;height:7px;background:var(--gold);border-radius:50%;
+    position:absolute;top:11px;margin-left:4px}
+  .tab .pip.show{display:inline-block}
+
+  .panel{flex:1;overflow-y:auto;display:none}
+  .panel.active{display:flex;flex-direction:column}
+
+  #guide{padding:20px 18px 32px;gap:22px}
+  .ev{text-align:center;padding-bottom:4px}
+  .ev .t{font-size:19px;font-weight:700;letter-spacing:.02em}
+  .ev .st{font-size:14px;color:var(--jade-deep);font-weight:500;margin-top:2px}
+  .ev .d{font-size:13px;color:var(--muted);margin-top:6px}
+  .sectitle{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:10px}
+  .card{background:var(--porcelain);border:1px solid var(--line);border-radius:16px;padding:16px}
+
+  .tl{position:relative}
+  .tl .item{display:flex;gap:14px;padding-bottom:16px;position:relative}
+  .tl .item:last-child{padding-bottom:0}
+  .tl .item::before{content:"";position:absolute;left:71px;top:20px;bottom:-2px;width:1.5px;background:var(--line)}
+  .tl .item:last-child::before{display:none}
+  .tl .time{flex:none;width:58px;text-align:right;font-size:12.5px;font-weight:700;color:var(--jade-deep);padding-top:1px}
+  .tl .node{flex:none;width:11px;height:11px;border-radius:50%;background:var(--jade);
+    border:2.5px solid var(--surface);box-shadow:0 0 0 1.5px var(--jade);margin-top:4px;z-index:1}
+  .tl .c .ti{font-size:14.5px;font-weight:500}
+  .tl .c .no{font-size:12.5px;color:var(--muted)}
+  .tl .item.opt .node{background:var(--gold);box-shadow:0 0 0 1.5px var(--gold)}
+  .tl .item.opt .time{color:var(--gold)}
+
+  .map{width:100%;height:170px;border:none;border-radius:12px;display:block;background:var(--line)}
+  .venue-name{font-weight:700;font-size:15px;margin:0 0 2px}
+  .venue-addr{font-size:13px;color:var(--muted);margin:0 0 12px}
+  .venue-addr-link{display:block;font-size:14.5px;color:var(--jade-deep);text-decoration:underline;
+    text-underline-offset:2px;margin:2px 0 14px;word-break:break-word}
+  .venue-addr-link:hover{color:var(--jade)}
+  .venue-hint{font-size:12px;color:var(--muted);margin:10px 0 0;text-align:center}
+  .dir-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    padding:13px;background:var(--jade);color:#fff;border:none;border-radius:12px;
+    font:inherit;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
+  .dir-btn:hover{background:var(--jade-deep)}
+  .pending{font-size:13px;color:var(--muted);text-align:center;padding:18px}
+
+  .ann{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .ann:last-child{border-bottom:none}
+  .ann .ico{flex:none;color:var(--jade-deep)}
+  .ann .b{font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .ann .t{font-size:11px;color:var(--muted);margin-top:3px}
+  .ann-empty{font-size:13px;color:var(--muted);text-align:center;padding:10px}
+
+  .tel{display:flex;align-items:center;justify-content:space-between;text-decoration:none;color:var(--ink)}
+  .tel .num{font-weight:700;color:var(--jade-deep);font-size:15px}
+
+  #chat{position:relative}
+  .stream{flex:1;overflow-y:auto;padding:18px 16px 8px;display:flex;flex-direction:column;gap:10px}
+  .daysep{align-self:center;font-size:11px;color:var(--muted);background:var(--porcelain);
+    padding:3px 12px;border-radius:999px;margin:6px 0}
+  .row{display:flex;max-width:82%}
+  .row.me{align-self:flex-end} .row.them{align-self:flex-start}
+  .bubble{padding:10px 14px;border-radius:var(--radius);font-size:15px;white-space:pre-wrap;
+    word-break:break-word;animation:rise .26s ease both}
+  .row.me .bubble{background:var(--jade);color:#fff;border-bottom-right-radius:6px}
+  .row.them .bubble{background:var(--porcelain);border:1px solid var(--line);border-bottom-left-radius:6px}
+  .time2{font-size:10.5px;color:var(--muted);margin:2px 4px 0;align-self:flex-end}
+  .row.them .time2{align-self:flex-start}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.bubble{animation:none}}
+  .composer{display:flex;align-items:flex-end;gap:10px;padding:12px 14px;
+    padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--surface)}
+  textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:22px;padding:11px 16px;
+    font:inherit;font-size:15px;max-height:120px;background:var(--porcelain);outline:none}
+  textarea:focus{border-color:var(--jade);background:var(--surface)}
+  .send{flex:none;width:44px;height:44px;border-radius:50%;border:none;background:var(--jade);
+    color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .send:hover{background:var(--jade-deep)} .send:disabled{background:var(--line)}
+
+  .start{margin:auto;text-align:center;padding:30px 24px;max-width:340px}
+  .start h3{margin:0 0 6px;font-size:16px}
+  .start p{margin:0 0 16px;font-size:13px;color:var(--muted)}
+  .start input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;
+    font:inherit;font-size:15px;margin-bottom:11px;outline:none}
+  .start input:focus{border-color:var(--jade)}
+  .start button{width:100%;padding:13px;border:none;border-radius:12px;background:var(--jade);
+    color:#fff;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+  .start button:hover{background:var(--jade-deep)}
+
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--danger);
+    color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .25s;
+    pointer-events:none;z-index:30}
+  .toast.show{opacity:1}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="mark">V&amp;L</div>
+    <div><div class="name">VANDS &amp; LIAS Medical Academy</div>
+      <div class="sub">ソウルセッション 事務局</div></div>
+  </div>
+
+  <div class="banner" id="banner">
+    <span class="ico">📢</span><span id="bannerText"></span>
+    <button class="x" id="bannerX" aria-label="閉じる">×</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabGuide">ご案内<span class="pip" id="guidePip"></span></button>
+    <button class="tab" id="tabChat">チャット<span class="pip" id="chatPip"></span></button>
+  </div>
+
+  <div class="panel active" id="guide">
+    <div class="ev">
+      <div class="t" id="evT"></div>
+      <div class="st" id="evS"></div>
+      <div class="d" id="evD"></div>
+    </div>
+    <div>
+      <div class="sectitle">当日のながれ</div>
+      <div class="card"><div class="tl" id="tl"></div></div>
+    </div>
+    <div>
+      <div class="sectitle">会場</div>
+      <div class="card" id="venueCard"></div>
+    </div>
+    <div>
+      <div class="sectitle">お知らせ</div>
+      <div class="card"><div id="annList"><div class="ann-empty">最新のお知らせはここに表示されます。</div></div></div>
+    </div>
+    <div id="telWrap" class="hidden">
+      <div class="sectitle">当日の緊急連絡先</div>
+      <a class="card tel" id="telLink"><span>お急ぎの場合はお電話を</span><span class="num" id="telNum"></span></a>
+    </div>
+  </div>
+
+  <div class="panel" id="chat">
+    <div class="stream" id="stream"></div>
+    <div class="start hidden" id="start">
+      <h3>事務局へのご質問</h3>
+      <p>お名前（＋クリニック名）を入力すると、事務局と直接やりとりできます。</p>
+      <input id="startName" type="text" placeholder="例）〇〇クリニック 田中先生" maxlength="60" />
+      <button id="startBtn">チャットを始める</button>
+    </div>
+    <div class="composer hidden" id="composer">
+      <textarea id="input" rows="1" placeholder="メッセージを入力"></textarea>
+      <button class="send" id="send" aria-label="送信">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12l16-8-6 16-3-6-7-2z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   設定 — 自分のSupabaseの値に置き換えてください
+   ============================================================ */
+const SUPABASE_URL  = "https://fegnyvwlfjgsmanjdvbe.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZ255dndsZmpnc21hbmpkdmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTM0ODIsImV4cCI6MjA5NzY4OTQ4Mn0.o2zU5UEYRqsd_O8KE1-jLfifgo35vmdknyqS_IRynwA";
+
+const EVENT = {
+  title:"VANDS & LIAS Medical Academy",
+  subtitle:"ソウルセッション",
+  date:"2026年6月28日(日)"
+};
+const SCHEDULE = [
+  { time:"7:45",       title:"現地集合",                          note:"会場前にお集まりください" },
+  { time:"8:00–11:30", title:"各講義",                            note:"" },
+  { time:"11:30〜",    title:"スペシャルセッション・新製剤のご案内", note:"ご都合のつく方のみ", optional:true }
+];
+/* 会場 — 住所が決まったら address を入れるだけで地図と経路案内が出ます */
+const VENUE = {
+  name:"Vands Clinic ヨクサム院",
+  address:"Donggyeong Building 1F, 116 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea"
+};
+/* 当日の緊急連絡先（決まったら入れる。空なら非表示） */
+const EMERGENCY_TEL = "";   // 例: "+81-90-xxxx-xxxx"
+/* ============================================================ */
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth:{ storageKey:"vl-academy-customer", persistSession:true, autoRefreshToken:true }
+});
+const $ = s => document.querySelector(s);
+let convId=null, msgChannel=null, currentTab="guide", bannerDismissed=null, lastDay=null;
+
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2600); }
+function fmtTime(iso){ return new Date(iso).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}); }
+function fmtDay(iso){ return new Date(iso).toLocaleDateString("ja-JP",{month:"long",day:"numeric",weekday:"short"}); }
+function fmtAnn(iso){ return new Date(iso).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}); }
+function esc(s){ return (s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+
+function renderGuide(){
+  $("#evT").textContent=EVENT.title; $("#evS").textContent=EVENT.subtitle; $("#evD").textContent=EVENT.date;
+  $("#tl").innerHTML = SCHEDULE.map(s=>`
+    <div class="item ${s.optional?'opt':''}">
+      <div class="time">${esc(s.time)}</div><div class="node"></div>
+      <div class="c"><div class="ti">${esc(s.title)}</div>${s.note?`<div class="no">${esc(s.note)}</div>`:""}</div>
+    </div>`).join("");
+
+  const venueReady = VENUE.address && VENUE.address.trim().length>0;
+  if(venueReady){
+    const dir="https://www.google.com/maps/dir/?api=1&travelmode=transit&destination="+encodeURIComponent(VENUE.address);
+    $("#venueCard").innerHTML=`
+      <p class="venue-name">${esc(VENUE.name)}</p>
+      <a class="venue-addr-link" target="_blank" rel="noopener" href="${dir}">${esc(VENUE.address)}</a>
+      <a class="dir-btn" target="_blank" rel="noopener" href="${dir}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>
+        現在地からの行き方を表示
+      </a>
+      <p class="venue-hint">タップすると地図が開き、今いる場所からの行き方が出ます。</p>`;
+  } else {
+    $("#venueCard").innerHTML=`<div class="pending">会場住所が確定し次第、地図と「現在地から経路案内」ボタンをここに表示します。</div>`;
+  }
+
+  if(EMERGENCY_TEL){ $("#telWrap").classList.remove("hidden");
+    $("#telNum").textContent=EMERGENCY_TEL; $("#telLink").href="tel:"+EMERGENCY_TEL.replace(/[^+\d]/g,""); }
+}
+
+function renderAnnouncements(list){
+  const box=$("#annList");
+  if(!list.length){ box.innerHTML='<div class="ann-empty">最新のお知らせはここに表示されます。</div>'; return; }
+  box.innerHTML=list.map(a=>`
+    <div class="ann"><span class="ico">📢</span>
+      <div><div class="b">${esc(a.body)}</div><div class="t">${fmtAnn(a.created_at)}</div></div></div>`).join("");
+}
+function showBanner(a){
+  if(bannerDismissed===a.id) return;
+  $("#bannerText").textContent=a.body;
+  $("#banner").classList.add("show"); $("#banner").dataset.id=a.id;
+}
+$("#bannerX").addEventListener("click",()=>{ bannerDismissed=$("#banner").dataset.id; $("#banner").classList.remove("show"); });
+
+async function loadAnnouncements(){
+  const { data } = await sb.from("announcements").select("*").order("created_at",{ascending:false}).limit(30);
+  if(data){ renderAnnouncements(data); if(data[0]) showBanner(data[0]); }
+}
+function watchAnnouncements(){
+  sb.channel("ann").on("postgres_changes",
+    {event:"INSERT",schema:"public",table:"announcements"},
+    p=>{ loadAnnouncements(); showBanner(p.new);
+         if(currentTab!=="guide") $("#guidePip").classList.add("show"); }
+  ).subscribe();
+}
+
+function switchTab(t){
+  currentTab=t;
+  $("#tabGuide").classList.toggle("active",t==="guide");
+  $("#tabChat").classList.toggle("active",t==="chat");
+  $("#guide").classList.toggle("active",t==="guide");
+  $("#chat").classList.toggle("active",t==="chat");
+  if(t==="guide") $("#guidePip").classList.remove("show");
+  if(t==="chat"){ $("#chatPip").classList.remove("show"); if(convId) $("#input").focus(); }
+}
+$("#tabGuide").addEventListener("click",()=>switchTab("guide"));
+$("#tabChat").addEventListener("click",()=>switchTab("chat"));
+
+function addMsg(m,animate=true){
+  const s=$("#stream"); const day=fmtDay(m.created_at);
+  if(day!==lastDay){ const d=document.createElement("div"); d.className="daysep"; d.textContent=day; s.appendChild(d); lastDay=day; }
+  const row=document.createElement("div"); row.className="row "+(m.sender==="customer"?"me":"them");
+  const b=document.createElement("div"); b.className="bubble"; b.textContent=m.body; if(!animate)b.style.animation="none";
+  const t=document.createElement("div"); t.className="time2"; t.textContent=fmtTime(m.created_at);
+  row.appendChild(b); row.appendChild(t); s.appendChild(row); s.scrollTop=s.scrollHeight;
+}
+async function ensureSession(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session) return session.user;
+  const { data, error } = await sb.auth.signInAnonymously();
+  if(error){ toast("接続できませんでした。"); throw error; }
+  return data.user;
+}
+async function findConversation(uid){
+  const { data } = await sb.from("conversations").select("id").eq("owner_id",uid).limit(1).maybeSingle();
+  return data ? data.id : null;
+}
+async function loadMessages(){
+  const { data } = await sb.from("messages").select("*").eq("conversation_id",convId).order("created_at",{ascending:true});
+  $("#stream").innerHTML=""; lastDay=null;
+  (data||[]).forEach(m=>addMsg(m,false));
+}
+function watchMessages(){
+  if(msgChannel) sb.removeChannel(msgChannel);
+  msgChannel=sb.channel("conv-"+convId).on("postgres_changes",
+    {event:"INSERT",schema:"public",table:"messages",filter:`conversation_id=eq.${convId}`},
+    p=>{ if(p.new.sender==="staff"){ addMsg(p.new); if(currentTab!=="chat") $("#chatPip").classList.add("show"); } }
+  ).subscribe();
+}
+function openChat(){ $("#start").classList.add("hidden"); $("#composer").classList.remove("hidden"); }
+function showStart(){ $("#start").classList.remove("hidden"); $("#composer").classList.add("hidden"); }
+
+const input=$("#input");
+input.addEventListener("input",()=>{ input.style.height="auto"; input.style.height=Math.min(input.scrollHeight,120)+"px"; });
+input.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } });
+$("#send").addEventListener("click",send);
+async function send(){
+  const body=input.value.trim(); if(!body||!convId) return;
+  input.value=""; input.style.height="auto";
+  addMsg({sender:"customer",body,created_at:new Date().toISOString()});
+  const { error }=await sb.from("messages").insert({conversation_id:convId,sender:"customer",body});
+  if(error) toast("送信に失敗しました。");
+}
+$("#startBtn").addEventListener("click",async()=>{
+  const name=$("#startName").value.trim(); if(!name){ $("#startName").focus(); return; }
+  const { data, error }=await sb.from("conversations").insert({customer_name:name}).select("id").single();
+  if(error){ toast("開始できませんでした。"); return; }
+  convId=data.id; openChat(); await loadMessages(); watchMessages(); input.focus();
+});
+$("#startName").addEventListener("keydown",e=>{ if(e.key==="Enter") $("#startBtn").click(); });
+
+(async function(){
+  renderGuide();
+  try{
+    await loadAnnouncements(); watchAnnouncements();
+    const user=await ensureSession();
+    convId=await findConversation(user.id);
+    if(convId){ openChat(); await loadMessages(); watchMessages(); }
+    else { showStart(); }
+  }catch(e){ console.error(e); showStart(); }
+})();
+</script>
+</body>
+</html>

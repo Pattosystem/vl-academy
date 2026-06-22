@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Academy チャット管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--porcelain:#F6F5F2;--surface:#FFFFFF;--ink:#1C1F1D;--muted:#7A8580;
+    --jade:#3A6B5E;--jade-deep:#2C5347;--jade-soft:#E8EFEB;--line:#E6E4DE;--gold:#A8884E;--danger:#B4524A}
+  *{box-sizing:border-box} html,body{height:100%;margin:0}
+  body{background:var(--porcelain);color:var(--ink);
+    font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;-webkit-font-smoothing:antialiased}
+
+  .login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
+  .login .card{background:var(--surface);border-radius:20px;padding:30px 28px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(28,31,29,.1)}
+  .login .mark{width:44px;height:44px;border-radius:12px;background:linear-gradient(140deg,var(--jade),var(--jade-deep));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:16px}
+  .login h2{margin:0 0 4px;font-size:19px} .login p{margin:0 0 20px;font-size:13px;color:var(--muted)}
+  .login input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:11px;font:inherit;font-size:15px;margin-bottom:11px;outline:none}
+  .login input:focus{border-color:var(--jade)}
+  .login button{width:100%;padding:13px;border:none;border-radius:11px;background:var(--jade);color:#fff;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+  .login button:hover{background:var(--jade-deep)}
+  .err{color:var(--danger);font-size:13px;margin:4px 0 0;min-height:18px}
+
+  .wrap{display:flex;height:100dvh}
+  .list{width:340px;flex:none;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .list .head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  .list .head h1{margin:0;font-size:15px;font-weight:700}
+  .signout{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;cursor:pointer}
+  .signout:hover{color:var(--danger)}
+
+  .bcast{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--jade-soft)}
+  .bcast button.open{width:100%;padding:11px;border:none;border-radius:10px;background:var(--jade-deep);color:#fff;
+    font:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+  .bcast button.open:hover{background:#22473c}
+  .bcast .box{display:none;margin-top:10px}
+  .bcast .box.show{display:block}
+  .bcast textarea{width:100%;resize:none;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;min-height:64px;outline:none}
+  .bcast textarea:focus{border-color:var(--jade)}
+  .bcast .send{margin-top:8px;width:100%;padding:10px;border:none;border-radius:10px;background:var(--gold);color:#fff;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  .bcast .hist{margin-top:10px;max-height:120px;overflow-y:auto}
+  .bcast .h{font-size:12.5px;color:var(--ink);padding:7px 0;border-top:1px solid rgba(0,0,0,.06);white-space:pre-wrap}
+  .bcast .h .when{color:var(--muted);font-size:10.5px}
+
+  .convs{flex:1;overflow-y:auto}
+  .conv{padding:14px 18px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:12px;align-items:flex-start}
+  .conv:hover{background:var(--porcelain)} .conv.active{background:var(--jade-soft)}
+  .avatar{width:40px;height:40px;border-radius:50%;flex:none;background:var(--jade-soft);color:var(--jade-deep);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .conv .body{flex:1;min-width:0}
+  .conv .crow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .conv .cname{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .conv .ctime{font-size:11px;color:var(--muted);flex:none}
+  .conv .preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .badge{background:var(--jade);color:#fff;border-radius:999px;font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+
+  .thread{flex:1;display:flex;flex-direction:column;background:var(--porcelain);min-width:0}
+  .thead{padding:16px 22px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .thead .back{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink)}
+  .thead .tname{font-weight:700;font-size:15px}
+  .stream{flex:1;overflow-y:auto;padding:22px 22px 8px;display:flex;flex-direction:column;gap:10px}
+  .daysep{align-self:center;font-size:11px;color:var(--muted);background:var(--surface);padding:3px 12px;border-radius:999px;margin:8px 0}
+  .row{display:flex;max-width:70%} .row.staff{align-self:flex-end} .row.customer{align-self:flex-start}
+  .bubble{padding:10px 14px;border-radius:16px;font-size:15px;white-space:pre-wrap;word-break:break-word;line-height:1.55}
+  .row.staff .bubble{background:var(--jade);color:#fff;border-bottom-right-radius:5px}
+  .row.customer .bubble{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:5px}
+  .time{font-size:10.5px;color:var(--muted);align-self:flex-end;margin:0 4px}
+  .composer{display:flex;align-items:flex-end;gap:10px;padding:14px 18px;background:var(--surface);border-top:1px solid var(--line)}
+  textarea.reply{flex:1;resize:none;border:1px solid var(--line);border-radius:20px;padding:11px 16px;font:inherit;font-size:15px;max-height:140px;outline:none;background:var(--porcelain)}
+  textarea.reply:focus{border-color:var(--jade);background:var(--surface)}
+  .sendr{flex:none;width:44px;height:44px;border-radius:50%;border:none;background:var(--jade);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .sendr:hover{background:var(--jade-deep)}
+  .placeholder{margin:auto;color:var(--muted);font-size:14px;text-align:center;padding:40px}
+  .hidden{display:none !important}
+  @media(max-width:760px){.list{width:100%}.thread{position:fixed;inset:0;z-index:5}.thread.hidden{display:none}.thead .back{display:block}.wrap.viewing .list{display:none}}
+</style>
+</head>
+<body>
+
+<div id="login" class="login">
+  <div class="card">
+    <div class="mark">V&amp;L</div>
+    <h2>Academy チャット管理</h2>
+    <p>事務局アカウントでログインしてください。</p>
+    <input id="email" type="email" placeholder="メールアドレス" autocomplete="username" />
+    <input id="password" type="password" placeholder="パスワード" autocomplete="current-password" />
+    <button id="loginBtn">ログイン</button>
+    <p class="err" id="loginErr"></p>
+  </div>
+</div>
+
+<div id="wrap" class="wrap hidden">
+  <aside class="list">
+    <div class="head"><h1>受信箱</h1><button class="signout" id="signout">ログアウト</button></div>
+    <div class="bcast">
+      <button class="open" id="bcOpen">📢 全員に一斉アナウンス</button>
+      <div class="box" id="bcBox">
+        <textarea id="bcText" placeholder="例）バスは8:30に会場前を出発します。&#10;参加者全員のチャットに即時表示されます。"></textarea>
+        <button class="send" id="bcSend">この内容で全員に送信</button>
+        <div class="hist" id="bcHist"></div>
+      </div>
+    </div>
+    <div class="convs" id="convs"></div>
+  </aside>
+
+  <section class="thread hidden" id="thread">
+    <div class="thead"><button class="back" id="back">‹</button><div class="tname" id="tname"></div></div>
+    <div class="stream" id="stream"></div>
+    <div class="composer">
+      <textarea id="input" class="reply" rows="1" placeholder="返信を入力"></textarea>
+      <button class="sendr" id="send" aria-label="送信">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12l16-8-6 16-3-6-7-2z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </section>
+  <div class="placeholder" id="placeholder">左の一覧から会話を選んでください。</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   設定 — index.html と同じSupabaseの値を入れてください
+   ============================================================ */
+const SUPABASE_URL  = "https://fegnyvwlfjgsmanjdvbe.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZ255dndsZmpnc21hbmpkdmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTM0ODIsImV4cCI6MjA5NzY4OTQ4Mn0.o2zU5UEYRqsd_O8KE1-jLfifgo35vmdknyqS_IRynwA";
+/* ============================================================ */
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth:{ storageKey:"vl-academy-staff", persistSession:true, autoRefreshToken:true }
+});
+const $ = s=>document.querySelector(s);
+let conversations=[], current=null, msgChannel=null, convChannel=null, lastDay=null;
+
+const initial=n=>(n||"?").trim().charAt(0).toUpperCase();
+const fmtTime=i=>new Date(i).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+const fmtDay=i=>new Date(i).toLocaleDateString("ja-JP",{month:"long",day:"numeric",weekday:"short"});
+function fmtListTime(i){const d=new Date(i),n=new Date();
+  return d.toDateString()===n.toDateString()?fmtTime(i):d.toLocaleDateString("ja-JP",{month:"numeric",day:"numeric"});}
+const esc=s=>(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+/* Auth */
+$("#loginBtn").addEventListener("click",login);
+$("#password").addEventListener("keydown",e=>{if(e.key==="Enter")login();});
+async function login(){
+  const email=$("#email").value.trim(), password=$("#password").value;
+  $("#loginErr").textContent="";
+  const { error }=await sb.auth.signInWithPassword({email,password});
+  if(error){ $("#loginErr").textContent="ログインできませんでした。"; return; }
+  enter();
+}
+$("#signout").addEventListener("click",async()=>{ await sb.auth.signOut(); location.reload(); });
+async function enter(){
+  $("#login").classList.add("hidden"); $("#wrap").classList.remove("hidden");
+  await loadConversations(); await loadBroadcasts(); watchAll();
+}
+
+/* Broadcast */
+$("#bcOpen").addEventListener("click",()=>$("#bcBox").classList.toggle("show"));
+$("#bcSend").addEventListener("click",async()=>{
+  const body=$("#bcText").value.trim(); if(!body) return;
+  if(!confirm("参加者全員に送信します。よろしいですか？")) return;
+  const { error }=await sb.from("announcements").insert({body});
+  if(error){ alert("送信できませんでした。"); return; }
+  $("#bcText").value=""; loadBroadcasts();
+});
+async function loadBroadcasts(){
+  const { data }=await sb.from("announcements").select("*").order("created_at",{ascending:false}).limit(20);
+  $("#bcHist").innerHTML=(data||[]).map(a=>`<div class="h">${esc(a.body)}<div class="when">${new Date(a.created_at).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}</div></div>`).join("");
+}
+
+/* Conversations */
+async function loadConversations(){
+  const { data, error }=await sb.from("conversations").select("*").order("last_message_at",{ascending:false});
+  if(error){ console.error(error); return; }
+  conversations=data; renderList();
+}
+function renderList(){
+  const box=$("#convs"); box.innerHTML="";
+  if(!conversations.length){ box.innerHTML='<div class="placeholder">まだ会話はありません。</div>'; return; }
+  conversations.forEach(c=>{
+    const el=document.createElement("div");
+    el.className="conv"+(current&&current.id===c.id?" active":"");
+    el.innerHTML=`<div class="avatar">${initial(c.customer_name)}</div>
+      <div class="body">
+        <div class="crow"><span class="cname">${esc(c.customer_name)}</span><span class="ctime">${fmtListTime(c.last_message_at)}</span></div>
+        <div class="crow"><span class="preview">${esc(c.last_message_preview||"")}</span>${c.unread_for_staff>0?`<span class="badge">${c.unread_for_staff}</span>`:""}</div>
+      </div>`;
+    el.addEventListener("click",()=>openConversation(c.id));
+    box.appendChild(el);
+  });
+}
+
+/* Thread */
+async function openConversation(id){
+  current=conversations.find(c=>c.id===id);
+  $("#wrap").classList.add("viewing"); $("#thread").classList.remove("hidden"); $("#placeholder").classList.add("hidden");
+  $("#tname").textContent=current.customer_name; renderList();
+  const { data }=await sb.from("messages").select("*").eq("conversation_id",id).order("created_at",{ascending:true});
+  const s=$("#stream"); s.innerHTML=""; lastDay=null; (data||[]).forEach(appendMsg);
+  await markRead(id); watchMessages(id); $("#input").focus();
+}
+function appendMsg(m){
+  const s=$("#stream"); const day=fmtDay(m.created_at);
+  if(day!==lastDay){ const d=document.createElement("div"); d.className="daysep"; d.textContent=day; s.appendChild(d); lastDay=day; }
+  const row=document.createElement("div"); row.className="row "+m.sender;
+  const b=document.createElement("div"); b.className="bubble"; b.textContent=m.body;
+  const t=document.createElement("div"); t.className="time"; t.textContent=fmtTime(m.created_at);
+  row.appendChild(b); row.appendChild(t); s.appendChild(row); s.scrollTop=s.scrollHeight;
+}
+async function markRead(id){
+  await sb.from("conversations").update({unread_for_staff:0}).eq("id",id);
+  const c=conversations.find(x=>x.id===id); if(c){ c.unread_for_staff=0; renderList(); }
+}
+$("#back").addEventListener("click",()=>{ $("#wrap").classList.remove("viewing"); $("#thread").classList.add("hidden"); current=null; renderList(); });
+
+/* Reply */
+const input=$("#input");
+input.addEventListener("input",()=>{ input.style.height="auto"; input.style.height=Math.min(input.scrollHeight,140)+"px"; });
+input.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); reply(); } });
+$("#send").addEventListener("click",reply);
+async function reply(){
+  const body=input.value.trim(); if(!body||!current) return;
+  input.value=""; input.style.height="auto"; appendMsg({sender:"staff",body,created_at:new Date().toISOString()});
+  const { error }=await sb.from("messages").insert({conversation_id:current.id,sender:"staff",body});
+  if(error) console.error(error);
+}
+
+/* Realtime */
+function watchMessages(id){
+  if(msgChannel) sb.removeChannel(msgChannel);
+  msgChannel=sb.channel("staff-msg-"+id).on("postgres_changes",
+    {event:"INSERT",schema:"public",table:"messages",filter:`conversation_id=eq.${id}`},
+    p=>{ if(p.new.sender==="customer"){ appendMsg(p.new); markRead(id); } }).subscribe();
+}
+function watchAll(){
+  if(convChannel) sb.removeChannel(convChannel);
+  convChannel=sb.channel("staff-convs")
+    .on("postgres_changes",{event:"*",schema:"public",table:"conversations"},()=>loadConversations())
+    .subscribe();
+}
+
+/* Boot */
+(async function(){
+  const { data:{ session } }=await sb.auth.getSession();
+  if(session && !session.user.is_anonymous) enter();
+})();
+</script>
+</body>
+</html>
