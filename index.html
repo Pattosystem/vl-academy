@@ -93,6 +93,8 @@
   .tel .num{font-weight:700;color:var(--jade-deep);font-size:15px}
 
   #chat{position:relative}
+  .chat-note{font-size:11px;color:var(--muted);background:var(--porcelain);
+    padding:8px 14px;border-bottom:1px solid var(--line);line-height:1.45;text-align:center}
   .stream{flex:1;overflow-y:auto;padding:18px 16px 8px;display:flex;flex-direction:column;gap:10px}
   .daysep{align-self:center;font-size:11px;color:var(--muted);background:var(--porcelain);
     padding:3px 12px;border-radius:999px;margin:6px 0}
@@ -175,6 +177,7 @@
   </div>
 
   <div class="panel" id="chat">
+    <div class="chat-note">💡 履歴は同じスマホ・ブラウザで開いた場合のみ表示されます。次回も同じ端末でお開きください。</div>
     <div class="stream" id="stream"></div>
     <div class="start hidden" id="start">
       <h3>事務局へのご質問</h3>
@@ -208,7 +211,7 @@ const EVENT = {
 const SCHEDULE = [
   { time:"7:45",       title:"現地集合",                          note:"会場前にお集まりください" },
   { time:"8:00–11:30", title:"各講義",                            note:"" },
-  { time:"11:30〜",    title:"スペシャルセッション・新製剤のご案内", note:"ご都合のつく方のみ", optional:true }
+  { time:"11:30〜",    title:"Vands先生方よりインタビューセッション、韓国最先端の商材ご紹介", note:"ご都合がつく方は是非ご参加ください", optional:true }
 ];
 /* 会場 — 住所が決まったら address を入れるだけで地図と経路案内が出ます */
 const VENUE = {
