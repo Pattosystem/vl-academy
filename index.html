@@ -80,6 +80,8 @@
     padding:13px;background:var(--jade);color:#fff;border:none;border-radius:12px;
     font:inherit;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
   .dir-btn:hover{background:var(--jade-deep)}
+  .dir-btn.alt{background:#fff;color:var(--jade-deep);border:1.5px solid var(--jade);margin-top:9px}
+  .dir-btn.alt:hover{background:var(--jade-soft)}
   .pending{font-size:13px;color:var(--muted);text-align:center;padding:18px}
 
   .ann{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -226,7 +228,8 @@ const SCHEDULE = [
 /* 会場 — 住所が決まったら address を入れるだけで地図と経路案内が出ます */
 const VENUE = {
   name:"Vands Clinic ヨクサム院",
-  address:"Donggyeong Building 1F, 116 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea"
+  address:"Donggyeong Building 1F, 116 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
+  naver:"https://map.naver.com/p/search/%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%ED%85%8C%ED%97%A4%EB%9E%80%EB%A1%9C%20116%20%EB%8F%99%EA%B2%BD%EB%B9%8C%EB%94%A9%201%EC%B8%B5/place/2039023016"
 };
 /* 当日の緊急連絡先（決まったら入れる。空なら非表示） */
 const EMERGENCY_TEL = "";   // 例: "+81-90-xxxx-xxxx"
@@ -256,14 +259,13 @@ function renderGuide(){
   const venueReady = VENUE.address && VENUE.address.trim().length>0;
   if(venueReady){
     const dir="https://www.google.com/maps/dir/?api=1&travelmode=transit&destination="+encodeURIComponent(VENUE.address);
+    const pin='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>';
     $("#venueCard").innerHTML=`
       <p class="venue-name">${esc(VENUE.name)}</p>
       <a class="venue-addr-link" target="_blank" rel="noopener" href="${dir}">${esc(VENUE.address)}</a>
-      <a class="dir-btn" target="_blank" rel="noopener" href="${dir}">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>
-        現在地からの行き方を表示
-      </a>
-      <p class="venue-hint">タップすると地図が開き、今いる場所からの行き方が出ます。</p>`;
+      <a class="dir-btn" target="_blank" rel="noopener" href="${dir}">${pin}現在地からの行き方（Googleマップ）</a>
+      ${VENUE.naver?`<a class="dir-btn alt" target="_blank" rel="noopener" href="${VENUE.naver}">${pin}Naverマップで開く（韓国）</a>`:""}
+      <p class="venue-hint">Googleは現在地からの経路（地下鉄など）、Naverは韓国の地図で会場の正確な位置が見られます。</p>`;
   } else {
     $("#venueCard").innerHTML=`<div class="pending">会場住所が確定し次第、地図と「現在地から経路案内」ボタンをここに表示します。</div>`;
   }
