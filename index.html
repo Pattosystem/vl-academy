@@ -80,6 +80,8 @@
   .venue-addr-kr{font-size:13px;color:var(--muted);margin:0 0 12px}
   .route-title{font-size:12.5px;font-weight:700;color:var(--jade-deep);margin:15px 0 8px}
   .route-map svg{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:12px}
+  .naver-tip{font-size:12.5px;color:var(--danger);background:#FBEDEC;border:1px solid #F0D3D0;border-radius:10px;padding:9px 11px;margin:9px 0 0;line-height:1.6}
+  .naver-tip b{font-weight:700}
   .dir-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
     padding:13px;background:var(--jade);color:#fff;border:none;border-radius:12px;
     font:inherit;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
@@ -305,6 +307,7 @@ function renderGuide(){
       <p class="venue-addr-plain">${esc(VENUE.address)}</p>
       ${VENUE.addressKr?`<p class="venue-addr-kr">${esc(VENUE.addressKr)}</p>`:""}
       ${VENUE.naver?`<a class="dir-btn" target="_blank" rel="noopener" href="${VENUE.naver}">${pin}Naverマップで開く（地図・道案内）</a>`:""}
+      <p class="naver-tip">⚠️ Naverでピンが表示されない場合は、検索欄に <b>역삼밴스피부과의원</b>（駅三ベンス皮膚科医院）と入力すると会場が表示されます。</p>
       <p class="route-title">江南駅からの道順</p>
       <div class="route-map">${ROUTE_SVG}</div>
       <p class="venue-hint">江南駅 1番出口を出てすぐ、동경빌딩（東京ビル）1階です。Naverが開けない時は、この地図と上の住所をご利用ください。</p>`;
