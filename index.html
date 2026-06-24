@@ -229,8 +229,8 @@ const SCHEDULE = [
 const VENUE = {
   name:"Vands Clinic ヨクサム院",
   address:"Donggyeong Building 1F, 116 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
-  query:"116 Teheran-ro, Gangnam-gu, Seoul",
-  naver:"https://m.place.naver.com/place/2039023016/home"
+  gmap:"https://www.google.com/maps/search/?api=1&query=37.4985444,127.0302973",
+  naver:"https://map.naver.com/p/entry/place/2039023016"
 };
 /* 当日の緊急連絡先（決まったら入れる。空なら非表示） */
 const EMERGENCY_TEL = "";   // 例: "+81-90-xxxx-xxxx"
@@ -260,7 +260,7 @@ function renderGuide(){
   const venueReady = VENUE.address && VENUE.address.trim().length>0;
   if(venueReady){
     const q=encodeURIComponent(VENUE.query || VENUE.address);
-    const gmap="https://www.google.com/maps/search/?api=1&query="+q;
+    const gmap=VENUE.gmap || ("https://www.google.com/maps/search/?api=1&query="+q);
     const pin='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>';
     $("#venueCard").innerHTML=`
       <p class="venue-name">${esc(VENUE.name)}</p>
