@@ -30,6 +30,10 @@
   .list .head h1{margin:0;font-size:15px;font-weight:700}
   .signout{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;cursor:pointer}
   .signout:hover{color:var(--danger)}
+  .head-btns{display:flex;align-items:center;gap:11px}
+  .notifybtn{background:var(--jade-soft);border:1px solid var(--jade);color:var(--jade-deep);font:inherit;font-size:11.5px;font-weight:700;padding:5px 9px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .notifybtn.on{background:var(--jade);color:#fff;border-color:var(--jade)}
+  .notifybtn.off{background:#FBEDEC;border-color:#F0D3D0;color:var(--danger)}
 
   .bcast{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--jade-soft)}
   .bcast button.open{width:100%;padding:11px;border:none;border-radius:10px;background:var(--jade-deep);color:#fff;
@@ -92,7 +96,7 @@
 
 <div id="wrap" class="wrap hidden">
   <aside class="list">
-    <div class="head"><h1>受信箱</h1><button class="signout" id="signout">ログアウト</button></div>
+    <div class="head"><h1>受信箱</h1><div class="head-btns"><button class="notifybtn" id="notifyBtn">🔔 通知を許可</button><button class="signout" id="signout">ログアウト</button></div></div>
     <div class="bcast">
       <button class="open" id="bcOpen">📢 全員に一斉アナウンス</button>
       <div class="box" id="bcBox">
@@ -152,7 +156,7 @@ async function login(){
 $("#signout").addEventListener("click",async()=>{ await sb.auth.signOut(); location.reload(); });
 async function enter(){
   $("#login").classList.add("hidden"); $("#wrap").classList.remove("hidden");
-  await loadConversations(); await loadBroadcasts(); watchAll();
+  await loadConversations(); await loadBroadcasts(); watchAll(); watchIncoming(); updateNotifyBtn();
 }
 
 /* Broadcast */
@@ -238,6 +242,56 @@ function watchAll(){
   convChannel=sb.channel("staff-convs")
     .on("postgres_changes",{event:"*",schema:"public",table:"conversations"},()=>loadConversations())
     .subscribe();
+}
+
+/* 通知 (sound + browser notification + tab badge) */
+const BASE_TITLE="Academy チャット管理";
+let pendingCount=0, audioCtx=null;
+function updateTitle(){ document.title = pendingCount>0 ? `(${pendingCount}) ${BASE_TITLE}` : BASE_TITLE; }
+function clearPending(){ if(pendingCount){ pendingCount=0; updateTitle(); } }
+window.addEventListener("focus", clearPending);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) clearPending(); });
+function beep(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    audioCtx=audioCtx||new AC(); if(audioCtx.state==="suspended") audioCtx.resume();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain(), t=audioCtx.currentTime;
+    o.type="sine"; o.frequency.setValueAtTime(880,t); o.frequency.setValueAtTime(660,t+0.18);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.25,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.4);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+0.42);
+  }catch(e){}
+}
+function showNotification(title, body){
+  if(!("Notification" in window) || Notification.permission!=="granted") return;
+  try{ const n=new Notification(title,{body:body||"",tag:"vl-academy",renotify:true});
+    n.onclick=()=>{ window.focus(); n.close(); }; }catch(e){}
+}
+function updateNotifyBtn(){
+  const b=$("#notifyBtn"); if(!b) return;
+  if(!("Notification" in window)){ b.textContent="🔔 音で通知中"; b.className="notifybtn on"; return; }
+  const p=Notification.permission;
+  if(p==="granted"){ b.textContent="🔔 通知ON"; b.className="notifybtn on"; }
+  else if(p==="denied"){ b.textContent="🔕 通知ブロック中"; b.className="notifybtn off"; }
+  else { b.textContent="🔔 通知を許可"; b.className="notifybtn"; }
+}
+async function enableNotify(){
+  try{ const AC=window.AudioContext||window.webkitAudioContext; if(AC){ audioCtx=audioCtx||new AC(); if(audioCtx.state==="suspended") await audioCtx.resume(); } }catch(e){}
+  if(("Notification" in window) && Notification.permission==="default"){ try{ await Notification.requestPermission(); }catch(e){} }
+  beep(); updateNotifyBtn();
+}
+const _nb=$("#notifyBtn"); if(_nb) _nb.addEventListener("click", enableNotify);
+function watchIncoming(){
+  sb.channel("staff-incoming")
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"}, p=>{
+      const m=p.new; if(!m || m.sender!=="customer") return;
+      const reading = current && current.id===m.conversation_id && !document.hidden && (document.hasFocus?document.hasFocus():true);
+      if(reading) return;
+      pendingCount++; updateTitle(); beep();
+      const conv=conversations.find(c=>c.id===m.conversation_id);
+      showNotification(conv ? `${conv.customer_name} さんから新着` : "新着メッセージ", m.body);
+    }).subscribe();
 }
 
 /* Boot */
